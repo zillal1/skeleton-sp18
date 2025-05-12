@@ -9,7 +9,7 @@ public class TestArrayDequeGold {
         String log = "";
         for (int i = 0; i < 1000; i++) {
             if (stdArray.isEmpty()) {
-                int addNumber = StdRandom.uniform(10);
+                int addNumber = StdRandom.uniform(1000);
                 int headOrBack = StdRandom.uniform(2);
                 if (headOrBack == 0) {
                     log += "addFirst(" + addNumber + ")\n";
@@ -35,14 +35,14 @@ public class TestArrayDequeGold {
                     stdArray.addLast(addNumber);
                 } else if (x == 2) {
                     log += "removeFirst()\n";
-                    testremoveNumber = stdArray.removeFirst();
+                    testremoveNumber = testArray.removeFirst();
                     stdremoveNumber = stdArray.removeFirst();
                 } else {
                     log += "removeLast()\n";
-                    testremoveNumber = stdArray.removeLast();
+                    testremoveNumber = testArray.removeLast();
                     stdremoveNumber = stdArray.removeLast();
                 }
-                assertEquals(log, stdremoveNumber, testremoveNumber);
+                assertEquals(log, testremoveNumber, stdremoveNumber);
             }
         }
     }

@@ -207,9 +207,9 @@ public class StudentArrayDeque<T> {
                             var6 / 2 - (this.d - this.e) + 1, this.d - this.e);
                     this.e = var6 / 2 - (this.d - this.e);
                     System.arraycopy(this.a, this.d + 1, var7, var6 / 2 + 1, this.f - this.d - 1);
-                    int var8 = 1;
-                    int var9 = 2;
-                    this.f = (var6 / 2 + (this.f - this.d - 1) + 1) ^ (var8 << var9);
+                    //int var8 = 1;
+                    //int var9 = 2;
+                    this.f = (var6 / 2 + (this.f - this.d - 1) + 1); //^ (var8 << var9);
                     this.a = var7;
                     this.b = var6;
                     this.d = var6 / 2;
