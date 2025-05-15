@@ -4,7 +4,8 @@ import byog.TileEngine.TERenderer;
 import byog.TileEngine.TETile;
 import edu.princeton.cs.algs4.StdDraw;
 
-import java.awt.*;
+import java.awt.Font;
+import java.awt.Color;
 import java.util.concurrent.atomic.AtomicInteger;
 
 public class Game {
@@ -175,11 +176,13 @@ public class Game {
             System.out.println("接收到输入：" + input);
             command.append(input);
 
-            if (command.charAt(command.length() - 1) == 'l' || command.charAt(command.length() - 1) == 'L') {
+            if (command.charAt(command.length() - 1) == 'l' ||
+                    command.charAt(command.length() - 1) == 'L') {
                 isPlaying = true;
                 break;
             }
-            if (command.charAt(command.length() - 1) == 's' || command.charAt(command.length() - 1) == 'S') {
+            if (command.charAt(command.length() - 1) == 's' ||
+                    command.charAt(command.length() - 1) == 'S') {
                 break;
             }
             renderInputHistory();
@@ -238,7 +241,7 @@ public class Game {
         return world.getTeTiles();
     }
     public void useCommand() {
-        for (int i = 0; i < COMMAND.length(); i ++) {
+        for (int i = 0; i < COMMAND.length(); i++) {
             if (COMMAND.charAt(i) == 'Q') {
                 quitAndSaving();
             }

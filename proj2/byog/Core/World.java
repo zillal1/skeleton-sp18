@@ -1,14 +1,11 @@
 package byog.Core;
 
 import java.util.List;
-import java.util.ArrayList;
 import java.util.Random;
 
-import byog.Core.*;
 import byog.TileEngine.TETile;
 import byog.TileEngine.Tileset;
 
-import java.awt.Color;
 import java.io.Serializable;
 
 public class World implements Serializable {
@@ -63,8 +60,8 @@ public class World implements Serializable {
 
     public void resetLoad() {
         teTiles = new TETile[width][height];
-        for (int x = 0; x < width; x ++) {
-            for (int y = 0; y < height; y ++) {
+        for (int x = 0; x < width; x++) {
+            for (int y = 0; y < height; y++) {
                 teTiles[x][y] = Tileset.NOTHING;
             }
         }
