@@ -8,12 +8,12 @@ public class PercolationStats {
     private final int T;
 
     public PercolationStats(int N, int T, PercolationFactory pf) {
-        thresholds = new double[T];
-        this.N = N;
-        this.T = T;
         if (N <= 0 || T <= 0) {
             throw new IllegalArgumentException("N and T must be greater than 0");
         }
+        thresholds = new double[T];
+        this.N = N;
+        this.T = T;
         for (int t = 0; t < T; t++) {
             Percolation p = pf.make(N);
             while (!p.percolates()) {
