@@ -18,8 +18,8 @@ public class MyHashMap<K, V> implements Map61B<K, V> {
     private ArrayMap<K, V>[] buckets;
     private int size;
 
-    private int loadFactor() {
-        return size / buckets.length;
+    private double loadFactor() {
+        return (double) size / buckets.length;
     }
 
     public MyHashMap() {
@@ -66,20 +66,25 @@ public class MyHashMap<K, V> implements Map61B<K, V> {
     @Override
     public void put(K key, V value) {
         int index = hash(key);
-        if (buckets[index] == null) {
-            buckets[index] = new ArrayMap<>();
-        }
         if (buckets[index].containsKey(key)) {
             buckets[index].put(key, value);
-            return;
         } else {
             if (loadFactor() >= MAX_LF) {
                 resize(buckets.length * 2);
+                index = hash(key);
             }
             buckets[index].put(key, value);
             size += 1;
         }
         //throw new UnsupportedOperationException();
+    }
+    @Override
+    public boolean containsKey(K key) {
+        int index = hash(key);
+        if (buckets[index].containsKey(key)) {
+            return true;
+        }
+        return false;
     }
     private void resize(int newSize) {
         ArrayMap<K, V>[] newBuckets = new ArrayMap[newSize];
