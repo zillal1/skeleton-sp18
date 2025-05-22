@@ -9,6 +9,7 @@ public class Percolation {
     private final WeightedQuickUnionUF ufFull;
     private final int topVirtual;
     private final int bottomVirtual;
+    private int opened;
     public Percolation(int N) {
         if (N <= 0) {
             throw new IllegalArgumentException("N must be greater than 0");
@@ -19,12 +20,14 @@ public class Percolation {
         ufFull = new WeightedQuickUnionUF(N * N + 1);
         topVirtual = N * N;
         bottomVirtual = N * N + 1;
+        opened = 0;
     }               // create N-by-N grid, with all sites initially blocked
     public void open(int row, int col) {
         if (row < 0 || row >= N || col < 0 || col >= N) {
             throw new IndexOutOfBoundsException("row or column index out of bounds");
         }
         if (!grid[row][col]) {
+            opened++;
             grid[row][col] = true;
             int index = row * N + col;
             if (row == 0) {
@@ -40,6 +43,7 @@ public class Percolation {
     private void connectAdjacent(int row, int col) {
         int index = row * N + col;
         if (row > 0 && grid[row - 1][col]) {
+            //uf.connected(index, topVirtual);
             uf.union(index, (row - 1) * N + col);
             ufFull.union(index, (row - 1) * N + col);
         }
@@ -69,15 +73,7 @@ public class Percolation {
         return ufFull.connected(topVirtual, row * N + col);
     } // is the site (row, col) full?
     public int numberOfOpenSites() {
-        int count = 0;
-        for (int i = 0; i < N; i++) {
-            for (int j = 0; j < N; j++) {
-                if (grid[i][j]) {
-                    count++;
-                }
-            }
-        }
-        return count;
+        return opened;
     }          // number of open sites
     public boolean percolates() {
         return uf.connected(topVirtual, bottomVirtual);
