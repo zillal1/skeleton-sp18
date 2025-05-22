@@ -133,7 +133,7 @@ public class BSTMap<K extends Comparable<K>, V> implements Map61B<K, V> {
         @SuppressWarnings("unchecked")
         V[] ans = (V[]) new Object[1];
         ans[0] = null;
-        removeHelper(key, root, ans);
+        root = removeHelper(key, root, ans);
         return ans[0];
         //throw new UnsupportedOperationException();
     }
