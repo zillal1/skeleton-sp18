@@ -10,7 +10,9 @@ public class Percolation {
     private final int topVirtual;
     private final int bottomVirtual;
     public Percolation(int N) {
-        if (N <= 0) throw new IllegalArgumentException("N must be greater than 0");
+        if (N <= 0) {
+            throw new IllegalArgumentException("N must be greater than 0");
+        }
         this.N = N;
         grid = new boolean[N][N];
         uf = new WeightedQuickUnionUF(N * N + 2);
@@ -29,11 +31,13 @@ public class Percolation {
                 uf.union(index, topVirtual);
                 ufFull.union(index, topVirtual);
             }
-            if (row == N - 1) uf.union(index, bottomVirtual);
+            if (row == N - 1) {
+                uf.union(index, bottomVirtual);
+            }
             connectAdjacent(row, col);
         }
     }      // open the site (row, col) if it is not open already
-    public void connectAdjacent(int row, int col) {
+    private void connectAdjacent(int row, int col) {
         int index = row * N + col;
         if (row > 0 && grid[row - 1][col]) {
             uf.union(index, (row - 1) * N + col);
