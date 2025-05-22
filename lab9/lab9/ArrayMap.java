@@ -23,7 +23,10 @@ public class ArrayMap<K, V> implements Map61B<K, V> {
      *  -1 otherwise. */
     private int keyIndex(K key) {
         for (int i = 0; i < size; i += 1) {
-            if (keys[i].equals(key)) {
+            if (keys[i] == null && key == null) {
+                return i;
+            }
+            if (key != null && keys[i].equals(key)) {
                 return i;
             }
         }
