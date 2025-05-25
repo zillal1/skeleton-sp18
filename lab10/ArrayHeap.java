@@ -124,16 +124,16 @@ public class ArrayHeap<T> implements ExtrinsicPQ<T> {
         while (inBounds(leftIndex(index))) {
             int leftChildIndex = leftIndex(index);
             int rightChildIndex = rightIndex(index);
-            int ChildIndex;
+            int childIndex;
             if (inBounds(rightChildIndex)) {
-                ChildIndex = (getNode(leftChildIndex).myPriority < getNode(rightChildIndex).myPriority)
+                childIndex = (getNode(leftChildIndex).myPriority < getNode(rightChildIndex).myPriority)
                         ? leftChildIndex : rightChildIndex;
             } else {
-                ChildIndex = leftChildIndex;
+                childIndex = leftChildIndex;
             }
-            if (getNode(index).myPriority > getNode(ChildIndex).myPriority ) {
-                swap(index, ChildIndex);
-                index = ChildIndex;
+            if (getNode(index).myPriority > getNode(childIndex).myPriority) {
+                swap(index, childIndex);
+                index = childIndex;
             } else {
                 break;
             }
@@ -273,7 +273,7 @@ public class ArrayHeap<T> implements ExtrinsicPQ<T> {
             myPriority = priority;
         }
 
-        public T item(){
+        public T item() {
             return myItem;
         }
 
