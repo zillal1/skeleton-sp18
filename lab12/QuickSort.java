@@ -47,13 +47,57 @@ public class QuickSort {
     private static <Item extends Comparable> void partition(
             Queue<Item> unsorted, Item pivot,
             Queue<Item> less, Queue<Item> equal, Queue<Item> greater) {
-        // Your code here!
+        for (Item item : unsorted) {
+            if (item.compareTo(pivot) < 0) {
+                less.enqueue(item);
+            } else if (item.compareTo(pivot) == 0) {
+                equal.enqueue(item);
+            } else {
+                greater.enqueue(item);
+            }
+        }
     }
 
     /** Returns a Queue that contains the given items sorted from least to greatest. */
     public static <Item extends Comparable> Queue<Item> quickSort(
             Queue<Item> items) {
-        // Your code here!
+        // Base case: if the queue is empty or has one item, it's already sorted.
+        if (items.isEmpty() || items.size() == 1) {
+            return items;
+        }
+        // Step 1: Choose a random pivot.
+        Item pivot = getRandomItem(items);
+        // Step 2: Partition the items into less, equal, and greater queues.
+        Queue<Item> less = new Queue<>();
+        Queue<Item> equal = new Queue<>();
+        Queue<Item> greater = new Queue<>();
+        partition(items, pivot, less, equal, greater);
+        // Step 3: Recursively sort the less and greater queues.
+        Queue<Item> sortedLess = quickSort(less);
+        Queue<Item> sortedGreater = quickSort(greater);
+        // Step 4: Combine the sorted less, equal, and greater queues.
+        items = catenate(sortedLess, equal);
+        items = catenate(items, sortedGreater);
         return items;
+    }
+
+    public static void main(String[] args) {
+        Queue<Integer> items = new Queue<>();
+        items.enqueue(3);
+        items.enqueue(1);
+        items.enqueue(4);
+        items.enqueue(1);
+        items.enqueue(5);
+        items.enqueue(9);
+        items.enqueue(2);
+        items.enqueue(6);
+        items.enqueue(5);
+        items.enqueue(3);
+        items.enqueue(5);
+
+        Queue<Integer> sortedItems = quickSort(items);
+        for (Integer item : sortedItems) {
+            System.out.print(item + " ");
+        }
     }
 }
