@@ -163,19 +163,34 @@ public class GraphDB {
         edges.put(edge.id, edge);
     }
     public static List<String> getLocationsByPrefix(String prefix) {
-        return nameTrie.getKeysWithPrefix(cleanString(prefix));
+        List<String> matchedCleaned = nameTrie.getKeysWithPrefix(cleanString(prefix));
+        List<String> result = new ArrayList<>();
+        for (String cleaned : matchedCleaned) {
+            ArrayList<Long> ids = names.get(cleaned);
+            if (ids != null) {
+                for (Long id : ids) {
+                    Node node = nodes.get(id.toString());
+                    if (node != null && node.getLocation() != null) {
+                        result.add(node.getLocation());
+                    }
+                }
+            }
+        }
+        return result;
     }
     public static List<Map<String, Object>> getLocations(String location) {
         ArrayList<Long> ids = names.get(cleanString(location));
         List<Map<String, Object>> result = new ArrayList<>();
         for (Long id : ids) {
             Node node = nodes.get(id);
-            result.add(new HashMap<String, Object>() {{
-                put("id", id);
-                put("lat", node.getLat());
-                put("lon", node.getLon());
-                put("location", node.getLocation());
-            }});
+            if (node != null) {
+                Map<String, Object> info = new HashMap<>();
+                info.put("id", id);
+                info.put("lat", node.getLat());
+                info.put("lon", node.getLon());
+                info.put("location", node.getLocation());
+                result.add(info);
+            }
         }
         return result;
     }
