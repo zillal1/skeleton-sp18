@@ -30,6 +30,7 @@ public class GraphDB {
             this.id  = id;
             this.lat = lat;
             this.lon = lon;
+            this.location = "";
         }
 
         public void connect(String neighbor) {
@@ -40,7 +41,13 @@ public class GraphDB {
         }
         public void setLocation(String location) {
             this.location = location;
-            nameTrie.add(cleanString(location));
+            String cleanLocation = cleanString(location);
+            nameTrie.add(cleanLocation);
+            if (names.containsKey(cleanLocation)) {
+                names.get(cleanLocation).add(Long.parseLong(this.id));
+            } else {
+                names.put(cleanLocation, new ArrayList<>(Collections.singletonList(Long.parseLong(this.id))));
+            }
         }
         public String getId() {
             return id;
@@ -149,15 +156,6 @@ public class GraphDB {
     }
     public void addNode(Node node) {
         nodes.put(node.id, node);
-        if (node.getLocation() != null) {
-            String cleanLocation = cleanString(node.getLocation());
-            nameTrie.add(cleanLocation);
-            if (names.containsKey(cleanLocation)) {
-                names.get(cleanLocation).add(Long.parseLong(node.id));
-            } else {
-                names.put(cleanLocation, new ArrayList<>(Collections.singletonList(Long.parseLong(node.id))));
-            }
-        }
     }
     public void addEdge(Edge edge) {
         edges.put(edge.id, edge);
@@ -181,6 +179,9 @@ public class GraphDB {
     public static List<Map<String, Object>> getLocations(String location) {
         ArrayList<Long> ids = names.get(cleanString(location));
         List<Map<String, Object>> result = new ArrayList<>();
+        if (ids == null) {
+            return result; // Return empty list if no ids found
+        }
         for (Long id : ids) {
             Node node = nodes.get(id);
             if (node != null) {
