@@ -2,9 +2,7 @@ import org.xml.sax.Attributes;
 import org.xml.sax.SAXException;
 import org.xml.sax.helpers.DefaultHandler;
 
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.Set;
+import java.util.*;
 
 /**
  *  Parses OSM XML files using an XML SAX parser. Used to construct the graph of roads for
@@ -38,6 +36,9 @@ public class GraphBuildingHandler extends DefaultHandler {
                     "secondary_link", "tertiary_link"));
     private String activeState = "";
     private final GraphDB g;
+    private GraphDB.Edge currentEdge;
+    private GraphDB.Node currentNode;
+    private List<String> connections = new ArrayList<>();
 
     /**
      * Create a new GraphBuildingHandler.
@@ -68,51 +69,62 @@ public class GraphBuildingHandler extends DefaultHandler {
         if (qName.equals("node")) {
             /* We encountered a new <node...> tag. */
             activeState = "node";
-//            System.out.println("Node id: " + attributes.getValue("id"));
-//            System.out.println("Node lon: " + attributes.getValue("lon"));
-//            System.out.println("Node lat: " + attributes.getValue("lat"));
+            //System.out.println("Node id: " + attributes.getValue("id"));
+            //System.out.println("Node lon: " + attributes.getValue("lon"));
+            //System.out.println("Node lat: " + attributes.getValue("lat"));
 
-            /* TODO Use the above information to save a "node" to somewhere. */
             /* Hint: A graph-like structure would be nice. */
+            currentNode = new GraphDB.Node(
+                    attributes.getValue("id"),
+                    Double.parseDouble(attributes.getValue("lat")),
+                    Double.parseDouble(attributes.getValue("lon"))
+            );
+            g.addNode(currentNode);
 
         } else if (qName.equals("way")) {
             /* We encountered a new <way...> tag. */
             activeState = "way";
-//            System.out.println("Beginning a way...");
+            currentEdge = new GraphDB.Edge();
+            currentEdge.setId(attributes.getValue("id"));
+            currentEdge.setValid(false); // Default to invalid until proven otherwise
+            currentEdge.setName("");
+
         } else if (activeState.equals("way") && qName.equals("nd")) {
             /* While looking at a way, we found a <nd...> tag. */
             //System.out.println("Id of a node in this way: " + attributes.getValue("ref"));
 
-            /* TODO Use the above id to make "possible" connections between the nodes in this way */
             /* Hint1: It would be useful to remember what was the last node in this way. */
             /* Hint2: Not all ways are valid. So, directly connecting the nodes here would be
             cumbersome since you might have to remove the connections if you later see a tag that
             makes this way invalid. Instead, think of keeping a list of possible connections and
             remember whether this way is valid or not. */
+            String nodeId = attributes.getValue("ref");
+            if (g.getNode(nodeId) != null) {
+                connections.add(nodeId);
+            } else {
+                System.err.println("Warning: Node with id " + nodeId + " not found in graph.");
+            }
 
         } else if (activeState.equals("way") && qName.equals("tag")) {
             /* While looking at a way, we found a <tag...> tag. */
             String k = attributes.getValue("k");
             String v = attributes.getValue("v");
-            if (k.equals("maxspeed")) {
-                //System.out.println("Max Speed: " + v);
-                /* TODO set the max speed of the "current way" here. */
-            } else if (k.equals("highway")) {
-                //System.out.println("Highway type: " + v);
-                /* TODO Figure out whether this way and its connections are valid. */
-                /* Hint: Setting a "flag" is good enough! */
+
+            if (k.equals("highway") && ALLOWED_HIGHWAY_TYPES.contains(v)) {
+                currentEdge.setValid(true);
             } else if (k.equals("name")) {
-                //System.out.println("Way Name: " + v);
+                currentEdge.setName(v);
+            } else if (k.equals("maxspeed")) {
+                currentEdge.setMaxspeed(v);
             }
-//            System.out.println("Tag with k=" + k + ", v=" + v + ".");
-        } else if (activeState.equals("node") && qName.equals("tag") && attributes.getValue("k")
-                .equals("name")) {
+        } else if (activeState.equals("node") && qName.equals("tag")
+                && attributes.getValue("k").equals("name")) {
             /* While looking at a node, we found a <tag...> with k="name". */
-            /* TODO Create a location. */
+            currentNode.setLocation(attributes.getValue("v"));
             /* Hint: Since we found this <tag...> INSIDE a node, we should probably remember which
             node this tag belongs to. Remember XML is parsed top-to-bottom, so probably it's the
             last node that you looked at (check the first if-case). */
-//            System.out.println("Node's name: " + attributes.getValue("v"));
+
         }
     }
 
@@ -133,7 +145,20 @@ public class GraphBuildingHandler extends DefaultHandler {
             /* We are done looking at a way. (We finished looking at the nodes, speeds, etc...)*/
             /* Hint1: If you have stored the possible connections for this way, here's your
             chance to actually connect the nodes together if the way is valid. */
-//            System.out.println("Finishing a way...");
+            if (currentEdge.isValid()) {
+                for (int i = 0; i < connections.size() - 1; i++) {
+                    String fromNodeId = connections.get(i);
+                    String toNodeId = connections.get(i + 1);
+                    GraphDB.Node fromNode = g.getNode(fromNodeId);
+                    GraphDB.Node toNode = g.getNode(toNodeId);
+                    fromNode.connect(toNodeId);
+                    toNode.connect(fromNodeId);
+                    fromNode.addEdges(currentEdge.getId());
+                    toNode.addEdges(currentEdge.getId());
+                }
+                g.addEdge(currentEdge);
+            }
+            connections.clear();
         }
     }
 

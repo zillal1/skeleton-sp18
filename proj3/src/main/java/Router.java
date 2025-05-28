@@ -1,5 +1,6 @@
-import java.util.List;
-import java.util.Objects;
+import edu.princeton.cs.algs4.MinPQ;
+
+import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -12,6 +13,7 @@ import java.util.regex.Pattern;
  * down to the priority you use to order your vertices.
  */
 public class Router {
+
     /**
      * Return a List of longs representing the shortest path from the node
      * closest to a start location and the node closest to the destination
@@ -25,7 +27,64 @@ public class Router {
      */
     public static List<Long> shortestPath(GraphDB g, double stlon, double stlat,
                                           double destlon, double destlat) {
-        return null; // FIXME
+        long startNode = g.closest(stlon, stlat);
+        long destNode = g.closest(destlon, destlat);
+        class SearchNode implements Comparable<SearchNode> {
+            long id;
+            double gx;
+            double hx;
+            SearchNode parent;
+            SearchNode(long id, SearchNode parent) {
+                this.id = id;
+                this.gx = g.distance(id, parent.id) + parent.gx;
+                this.hx = g.distance(id, destNode);
+                this.parent = parent;
+            }
+            SearchNode(long id) {
+                this.id = id;
+                this.gx = 0.0;
+                this.hx = g.distance(id, destNode);
+                this.parent = null;
+            }
+
+            @Override
+            public int compareTo(SearchNode other) {
+                return Double.compare(this.gx + this.hx, other.gx + other.hx);
+            }
+        }
+
+        MinPQ<SearchNode> pq = new MinPQ<>();
+        SearchNode start = new SearchNode(startNode);
+        pq.insert(start);
+        Set<Long> visited = new HashSet<>();
+        LinkedList<Long> distTo = new LinkedList<>();
+        Map<Long, SearchNode> nodes = new HashMap<>();
+        nodes.put(startNode, start);
+        while (!pq.isEmpty()) {
+            SearchNode current = pq.delMin();
+            if (visited.contains(current.id)) {
+                continue;
+            }
+            visited.add(current.id);
+            if (current.id == destNode) {
+                while (current != null) {
+                    distTo.addFirst(current.id);
+                    current = current.parent;
+                }
+                break; // found the destination
+            }
+            for (long neighbor : g.adjacent(current.id)) {
+                if (!visited.contains(neighbor)) {
+                    if (!nodes.containsKey(neighbor)
+                            || nodes.get(neighbor).gx > current.gx + g.distance(current.id, neighbor)) {
+                        SearchNode neighborNode = new SearchNode(neighbor, current);
+                        nodes.put(neighbor, neighborNode);
+                        pq.insert(neighborNode);
+                    }
+                }
+            }
+        }
+        return distTo;
     }
 
     /**
@@ -37,7 +96,56 @@ public class Router {
      * route.
      */
     public static List<NavigationDirection> routeDirections(GraphDB g, List<Long> route) {
-        return null; // FIXME
+        List<NavigationDirection> directions = new ArrayList<>();
+        if (route.isEmpty()) {
+            return directions; // no route, no directions
+        }
+
+        NavigationDirection currentDirection = new NavigationDirection();
+        currentDirection.way = g.getEdgeName(route.get(0), route.get(1));
+        currentDirection.distance = g.distance(route.get(0), route.get(1));
+        currentDirection.direction = NavigationDirection.START;
+        //directions.add(currentDirection);
+
+        for (int i = 1; i < route.size() - 1; i++) {
+            long fromNode = route.get(i);
+            long toNode = route.get(i + 1);
+            String nextWay = g.getEdgeName(fromNode, toNode);
+            double distance = g.distance(fromNode, toNode);
+            if (nextWay == null || !nextWay.equals(currentDirection.way)) {
+                // we are changing ways
+                if (currentDirection.distance > 0) {
+                    directions.add(currentDirection);
+                }
+                currentDirection = new NavigationDirection();
+                currentDirection.way = nextWay;
+                currentDirection.distance = distance;
+                // determine the direction
+                double angle = g.angleBetweenNodes(route.get(i - 1), fromNode, toNode);
+                if (angle > -15 && angle < 15) {
+                    currentDirection.direction = NavigationDirection.STRAIGHT;
+                } else if (angle >= 15 && angle < 30) {
+                    currentDirection.direction = NavigationDirection.SLIGHT_RIGHT;
+                } else if (angle <= -15 && angle > -30) {
+                    currentDirection.direction = NavigationDirection.SLIGHT_LEFT;
+                } else if (angle >= 30 && angle < 100) {
+                    currentDirection.direction = NavigationDirection.RIGHT;
+                } else if (angle <= -30 && angle > -100) {
+                    currentDirection.direction = NavigationDirection.LEFT;
+                } else if (angle >= 100) {
+                    currentDirection.direction = NavigationDirection.SHARP_RIGHT;
+                } else if (angle <= -100) {
+                    currentDirection.direction = NavigationDirection.SHARP_LEFT;
+                }
+            } else {
+                currentDirection.distance += distance;
+            }
+        }
+        // add the last direction
+        if (currentDirection.distance > 0) {
+            directions.add(currentDirection);
+        }
+        return directions;
     }
 
 

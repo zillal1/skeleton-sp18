@@ -8,9 +8,16 @@ import java.util.Map;
  * not draw the output correctly.
  */
 public class Rasterer {
-
+    private static final double ULLON = MapServer.ROOT_ULLON;
+    private static final double ULLAT = MapServer.ROOT_ULLAT;
+    private static final double LRLON = MapServer.ROOT_LRLON;
+    private static final double LRLAT = MapServer.ROOT_LRLAT;
+    private static final double LONG_WIDTH = Math.abs(LRLON - ULLON);
+    private static final double LAT_HEIGHT = Math.abs(ULLAT - LRLAT);
+    private static final double TILE_SIZE = MapServer.TILE_SIZE;
     public Rasterer() {
         // YOUR CODE HERE
+
     }
 
     /**
@@ -41,11 +48,61 @@ public class Rasterer {
      * "query_success" : Boolean, whether the query was able to successfully complete; don't
      *                    forget to set this to true on success! <br>
      */
+    public int commuteDepth(double ullon, double lrlon, double width) {
+        // Calculate the LonDPP of the query box
+        double queryLonDPP = (lrlon - ullon) / width;
+        // Calculate the LonDPP of the root image
+        double rootLonDPP = LONG_WIDTH / TILE_SIZE;
+        // Determine the depth based on the LonDPP
+        int depth = 0;
+        while (depth < 7 && rootLonDPP > queryLonDPP) {
+            depth++;
+            rootLonDPP /= 2; // Each increase in depth halves the LonDPP
+        }
+        return depth;
+    }
     public Map<String, Object> getMapRaster(Map<String, Double> params) {
         // System.out.println(params);
         Map<String, Object> results = new HashMap<>();
-        System.out.println("Since you haven't implemented getMapRaster, nothing is displayed in "
-                           + "your browser.");
+        //System.out.println("Since you haven't implemented getMapRaster, nothing is displayed in "
+        //                   + "your browser.");
+        double lrlon = params.get("lrlon");
+        double ullon = params.get("ullon");
+        double ullat = params.get("ullat");
+        double lrlat = params.get("lrlat");
+        double width = params.get("w");
+        double height = params.get("h");
+        int depth = commuteDepth(ullon, lrlon, width);
+        boolean querySuccess = true;
+        if (lrlon <= ULLON || ullon >= LRLON || lrlat >= ULLAT || ullat <= LRLAT
+            || depth > 7 || ullon >= lrlon || ullat <= lrlat) {
+            querySuccess = false;
+        }
+        double widthPerTile = LONG_WIDTH / Math.pow(2, depth);
+        double heightPerTile = LAT_HEIGHT / Math.pow(2, depth);
+        int xStart = (int) ((ullon - ULLON) / widthPerTile);
+        int xEnd = (int) ((lrlon - ULLON) / widthPerTile);
+        int yStart = (int) ((ULLAT - ullat) / heightPerTile);
+        int yEnd = (int) ((ULLAT - lrlat) / heightPerTile);
+
+        double xStartLon = ULLON + xStart * widthPerTile;
+        double xEndLon = ULLON + (xEnd + 1) * widthPerTile;
+        double yStartLat = ULLAT - yStart * heightPerTile;
+        double yEndLat = ULLAT - (yEnd + 1) * heightPerTile;
+
+        String[][] renderGrid = new String[yEnd - yStart + 1][xEnd - xStart + 1];
+        for (int y = yStart; y <= yEnd; y++) {
+            for (int x = xStart; x <= xEnd; x++) {
+                renderGrid[y - yStart][x - xStart] = "d" + depth + "_x" + x + "_y" + y + ".png";
+            }
+        }
+        results.put("render_grid", renderGrid);
+        results.put("raster_ul_lon", xStartLon);
+        results.put("raster_ul_lat", yStartLat);
+        results.put("raster_lr_lon", xEndLon);
+        results.put("raster_lr_lat", yEndLat);
+        results.put("depth", depth);
+        results.put("query_success", querySuccess);
         return results;
     }
 
