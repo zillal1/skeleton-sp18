@@ -162,7 +162,7 @@ public class GraphDB {
     public void addEdge(Edge edge) {
         edges.put(edge.id, edge);
     }
-    public static List<String> getLocationByPrefix(String prefix) {
+    public static List<String> getLocationsByPrefix(String prefix) {
         return nameTrie.getKeysWithPrefix(cleanString(prefix));
     }
     public static List<Map<String, Object>> getLocations(String location) {

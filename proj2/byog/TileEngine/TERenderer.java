@@ -27,21 +27,46 @@ public class TERenderer {
      * @param w width of the window in tiles
      * @param h height of the window in tiles.
      */
+    public void renderFrameWithMouseInfo(TETile[][] world, String tileDesc) {
+        renderFrame(world);
+        drawTileInfo(tileDesc);
+    }
+    private void drawTileInfo(String Desc) {
+        StdDraw.setPenColor(Color.BLACK);
+        StdDraw.filledRectangle(width / 2.0, height - 0.5, width / 2.0, 1);
+
+        StdDraw.setPenColor(Color.WHITE);
+        StdDraw.setFont(new Font("Monaco", Font.PLAIN, 14));
+        StdDraw.textLeft(1, height - 1, Desc);
+
+        StdDraw.show();
+    }
+    public String cursorPointing(TETile[][] teTiles) {
+        double x = edu.princeton.cs.algs4.StdDraw.mouseX();
+        double y = edu.princeton.cs.algs4.StdDraw.mouseY();
+        int xPos = (int) x;
+        int yPos = (int) y;
+        if (xPos < 0 || xPos >= width || yPos < 0 || yPos >= height) {
+            return "Out of bounds! You are at " + "x: " + x + " y: " + y;
+        }
+        return teTiles[xPos][yPos].description();
+    }
     public void initialize(int w, int h, int xOff, int yOff) {
         this.width = w;
         this.height = h;
         this.xOffset = xOff;
         this.yOffset = yOff;
-        StdDraw.setCanvasSize(width * TILE_SIZE, height * TILE_SIZE);
+        /*StdDraw.clear();
+        //StdDraw.setCanvasSize(width * TILE_SIZE, height * TILE_SIZE);
         Font font = new Font("Monaco", Font.BOLD, TILE_SIZE - 2);
         StdDraw.setFont(font);      
-        StdDraw.setXscale(0, width);
-        StdDraw.setYscale(0, height);
+        //StdDraw.setXscale(0, width);
+        //StdDraw.setYscale(0, height);
 
         StdDraw.clear(new Color(0, 0, 0));
 
         StdDraw.enableDoubleBuffering();
-        StdDraw.show();
+        StdDraw.show();*/
     }
 
     /**
@@ -86,7 +111,7 @@ public class TERenderer {
     public void renderFrame(TETile[][] world) {
         int numXTiles = world.length;
         int numYTiles = world[0].length;
-        StdDraw.clear(new Color(0, 0, 0));
+        //StdDraw.clear(new Color(0, 0, 0));
         for (int x = 0; x < numXTiles; x += 1) {
             for (int y = 0; y < numYTiles; y += 1) {
                 if (world[x][y] == null) {

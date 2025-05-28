@@ -29,6 +29,11 @@ public class Game {
      * Method used for playing a fresh game. The game should start from the main menu.
      */
     public void playWithKeyboard() {
+        StdDraw.setCanvasSize(WIDTH * TILE_SIZE, HEIGHT * TILE_SIZE);
+        StdDraw.setXscale(0, WIDTH);
+        StdDraw.setYscale(0, HEIGHT);
+        StdDraw.clear(Color.BLACK);
+        StdDraw.enableDoubleBuffering();
         displayMainMenu();
         stringAnalysis(keyboardInput());
 
@@ -44,8 +49,10 @@ public class Game {
         ter = new TERenderer();
         ter.initialize(WIDTH, HEIGHT);
         while (isPlaying) {
-            ter.renderFrame(world.getTeTiles());
-            displayGameUI();
+            String tileDesc = ter.cursorPointing(world.getTeTiles());
+            ter.renderFrameWithMouseInfo(world.getTeTiles(), tileDesc);
+            //ter.renderFrame(world.getTeTiles());
+            //displayGameUI();
             movePlayer();
         }
         if (!isPlaying) {
@@ -54,7 +61,7 @@ public class Game {
             System.exit(0);
         }
     }
-    public void displayGameUI() {
+    /*public void displayGameUI() {
         StdDraw.setPenColor(Color.BLACK);
         StdDraw.filledRectangle(10, HEIGHT - 2, 20, 1);
         StdDraw.setFont(new Font("Monaco", Font.BOLD, 15));
@@ -62,7 +69,7 @@ public class Game {
         StdDraw.text(10, HEIGHT - 2, cursorPointing(world.getTeTiles()));
         StdDraw.show();
         StdDraw.setFont(new Font("Monaco", Font.BOLD, 20));
-    }
+    }*/
     public void movePlayer() {
         world.move(keyboardMove());
     }
@@ -135,21 +142,12 @@ public class Game {
             e.printStackTrace();
         }
     }
-    private String cursorPointing(TETile[][] teTiles) {
-        double x = StdDraw.mouseX();
-        double y = StdDraw.mouseY();
-        int xPos = (int) x;
-        int yPos = (int) y;
-        if (xPos < 0 || xPos >= WIDTH || yPos < 0 || yPos >= HEIGHT) {
-            return "Out of bounds! You are at " + "x: " + x + " y: " + y;
-        }
-        return teTiles[xPos][yPos].description();
-    }
-    private String cursorPointing() {
+
+    /*private String cursorPointing() {
         double x = StdDraw.mouseX();
         double y = StdDraw.mouseY();
         return "x: " + x + " y: " + y;
-    }
+    }*/
     public void load() {
         try {
             java.io.ObjectInputStream in =
@@ -176,13 +174,13 @@ public class Game {
             System.out.println("接收到输入：" + input);
             command.append(input);
 
-            if (command.charAt(command.length() - 1) == 'l' ||
-                    command.charAt(command.length() - 1) == 'L') {
+            if (command.charAt(command.length() - 1) == 'l'
+                    || command.charAt(command.length() - 1) == 'L') {
                 isPlaying = true;
                 break;
             }
-            if (command.charAt(command.length() - 1) == 's' ||
-                    command.charAt(command.length() - 1) == 'S') {
+            if (command.charAt(command.length() - 1) == 's'
+                    || command.charAt(command.length() - 1) == 'S') {
                 break;
             }
             renderInputHistory();
@@ -196,12 +194,12 @@ public class Game {
         int midWidth = WIDTH / 2;
         int midHeight = HEIGHT / 2;
         StdDraw.enableDoubleBuffering();
-        StdDraw.setCanvasSize(WIDTH * TILE_SIZE, HEIGHT * TILE_SIZE);
+        //StdDraw.setCanvasSize(WIDTH * TILE_SIZE, HEIGHT * TILE_SIZE);
         Font font = new Font("Monaco", Font.BOLD, 30);
         StdDraw.setFont(font);
         StdDraw.setPenColor(Color.WHITE);
-        StdDraw.setXscale(0, WIDTH);
-        StdDraw.setYscale(0, HEIGHT);
+        //StdDraw.setXscale(0, WIDTH);
+        //StdDraw.setYscale(0, HEIGHT);
         StdDraw.clear(Color.BLACK);
         StdDraw.text(midWidth, midHeight + 10, "CS61B: THE GAME");
 
