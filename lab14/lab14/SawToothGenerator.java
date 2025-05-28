@@ -13,7 +13,7 @@ public class SawToothGenerator implements Generator {
 
     public double next() {
         state = (state + 1);
-        return 2 * ((state % period) / period - 0.5);
+        return 2 * ((state % period) / (double) period - 0.5);
     }
 
 }
