@@ -156,6 +156,11 @@ public class GraphDB {
     }
     public void addNode(Node node) {
         nodes.put(node.id, node);
+        if (node.getLocation() != null && !node.getLocation().isEmpty()) {
+            String cleanLocation = cleanString(node.getLocation());
+            nameTrie.add(cleanLocation);
+            names.computeIfAbsent(cleanLocation, k -> new ArrayList<>()).add(Long.parseLong(node.id));
+        }
     }
     public void addEdge(Edge edge) {
         edges.put(edge.id, edge);
