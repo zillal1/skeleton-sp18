@@ -9,14 +9,16 @@ public class SeamCarver {
         this.picture = picture;
     }
     private void helper(double[][] M) {
-        for (int i = 0; i < picture.width(); i++) {
-            for (int j = 0; j < picture.height(); j++) {
+        for (int j = 0; j < picture.height(); j++) {
+            for (int i = 0; i < picture.width(); i++) {
                 if (j == 0) {
                     M[i][j] = energy(i, j); // Arbitrary value for the first pixel
                 } else if (i == 0) {
-                    M[i][j] = M[i][j - 1] + energy(i, j);
+                    M[i][j] = min(M[i][j - 1], M[i + 1][j - 1]) + energy(i, j);
+                }  else if (i == width() - 1) {
+                    M[i][j] = min(M[i - 1][j - 1], M[i][j - 1]) + energy(i, j);
                 } else {
-                    M[i][j] = min(M[i - 1][j], min(M[i][j - 1], M[i - 1][j - 1])) + energy(i, j);
+                    M[i][j] = min(M[i - 1][j - 1], min(M[i][j - 1], M[i + 1][j - 1])) + energy(i, j);
                 }
             }
         }
@@ -106,7 +108,8 @@ public class SeamCarver {
         }
         for (int i = 1; i < width(); i++) {
             if (abs(seam[i] - seam[i - 1]) > 1) {
-                throw new IllegalArgumentException("Invalid seam: adjacent pixels differ by more than one");
+                throw new IllegalArgumentException
+                        ("Invalid seam: adjacent pixels differ by more than one");
             }
         }
         Picture newPicture = new Picture(width(), height() - 1);
@@ -127,7 +130,8 @@ public class SeamCarver {
         }
         for (int i = 1; i < height(); i++) {
             if (abs(seam[i] - seam[i - 1]) > 1) {
-                throw new IllegalArgumentException("Invalid seam: adjacent pixels differ by more than one");
+                throw new IllegalArgumentException
+                        ("Invalid seam: adjacent pixels differ by more than one");
             }
         }
         Picture newPicture = new Picture(width() - 1, height());
