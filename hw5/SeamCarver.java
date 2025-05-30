@@ -1,4 +1,6 @@
 import static java.lang.Math.abs;
+import static java.lang.Math.min;
+
 import edu.princeton.cs.algs4.Picture;
 
 public class SeamCarver {
@@ -6,17 +8,15 @@ public class SeamCarver {
     public SeamCarver(Picture picture) {
         this.picture = picture;
     }
-    public void helper(double[][] M) {
+    private void helper(double[][] M) {
         for (int i = 0; i < picture.width(); i++) {
             for (int j = 0; j < picture.height(); j++) {
-                if (i == 0 && j == 0) {
-                    M[i][j] = energy(0, 0); // Arbitrary value for the first pixel
+                if (j == 0) {
+                    M[i][j] = energy(i, j); // Arbitrary value for the first pixel
                 } else if (i == 0) {
-                    M[i][j] = M[i][j - 1] + (int) energy(i, j);
-                } else if (j == 0) {
-                    M[i][j] = M[i - 1][j] + (int) energy(i, j);
+                    M[i][j] = M[i][j - 1] + energy(i, j);
                 } else {
-                    M[i][j] = Math.min(M[i - 1][j], Math.min(M[i][j - 1], M[i - 1][j - 1])) + energy(i, j);
+                    M[i][j] = min(M[i - 1][j], min(M[i][j - 1], M[i - 1][j - 1])) + energy(i, j);
                 }
             }
         }
@@ -53,7 +53,7 @@ public class SeamCarver {
         return rx * rx + gx * gx + bx * bx + ry * ry + gy * gy + by * by;
 
     }
-    public void transpose() {
+    private void transpose() {
         Picture transposed = new Picture(height(), width());
         for (int i = 0; i < width(); i++) {
             for (int j = 0; j < height(); j++) {
@@ -85,13 +85,16 @@ public class SeamCarver {
         for (int i = height() - 2; i >= 0; i--) {
             int currentIndex = seam[i + 1];
             double currentEnergy = energy(currentIndex, i + 1);
-            if (abs(M[currentIndex][i] + currentEnergy - M[currentIndex][i + 1]) < epslon) {
+            if (abs(M[currentIndex][i] + currentEnergy
+                    - M[currentIndex][i + 1]) < epslon) {
                 seam[i] = currentIndex;
             } else if (currentIndex > 0
-                    && abs(M[currentIndex - 1][i] + currentEnergy - M[currentIndex][i + 1]) < epslon) {
+                    && abs(M[currentIndex - 1][i] + currentEnergy
+                    - M[currentIndex][i + 1]) < epslon) {
                 seam[i] = currentIndex - 1;
             } else if (currentIndex < width() - 1
-                    && abs(M[currentIndex + 1][i] + currentEnergy - M[currentIndex][i + 1]) < epslon) {
+                    && abs(M[currentIndex + 1][i] + currentEnergy
+                    - M[currentIndex][i + 1]) < epslon) {
                 seam[i] = currentIndex + 1;
             }
         }
