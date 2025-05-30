@@ -6,25 +6,28 @@ import edu.princeton.cs.algs4.Picture;
 public class SeamCarver {
     private Picture picture;
     public SeamCarver(Picture picture) {
-        this.picture = picture;
+        this.picture = new Picture(picture);
     }
     private void helper(double[][] M) {
         for (int j = 0; j < picture.height(); j++) {
             for (int i = 0; i < picture.width(); i++) {
                 if (j == 0) {
                     M[i][j] = energy(i, j); // Arbitrary value for the first pixel
-                } else if (i == 0) {
-                    M[i][j] = min(M[i][j - 1], M[i + 1][j - 1]) + energy(i, j);
-                }  else if (i == width() - 1) {
-                    M[i][j] = min(M[i - 1][j - 1], M[i][j - 1]) + energy(i, j);
                 } else {
-                    M[i][j] = min(M[i - 1][j - 1], min(M[i][j - 1], M[i + 1][j - 1])) + energy(i, j);
+                    double minPrev = M[i][j - 1];
+                    if (i > 0) {
+                        minPrev = min(M[i - 1][j - 1], minPrev);
+                    }
+                    if (i < width() - 1) {
+                        minPrev = min(M[i + 1][j - 1], minPrev);
+                    }
+                    M[i][j] = energy(i, j) + minPrev;
                 }
             }
         }
     }
     public Picture picture() {
-        return picture;
+        return new Picture(picture);
     }                      // current picture
     public     int width() {
         return picture.width();
@@ -42,10 +45,10 @@ public class SeamCarver {
         if (width() == 1 && height() == 1) {
             return 0.0; // Special case for a single pixel
         }
-        int leftColor = picture().get(x == 0 ? width() - 1 : x - 1, y).getRGB();
-        int rightColor = picture().get(x == width() - 1 ? 0 : x + 1, y).getRGB();
-        int topColor = picture().get(x, y == 0 ? height() - 1 : y - 1).getRGB();
-        int bottomColor = picture().get(x, y == height() - 1 ? 0 : y + 1).getRGB();
+        int leftColor = this.picture().get(x == 0 ? width() - 1 : x - 1, y).getRGB();
+        int rightColor = this.picture().get(x == width() - 1 ? 0 : x + 1, y).getRGB();
+        int topColor = this.picture().get(x, y == 0 ? height() - 1 : y - 1).getRGB();
+        int bottomColor = this.picture().get(x, y == height() - 1 ? 0 : y + 1).getRGB();
         int rx = ((leftColor >> 16) & 0xFF) - ((rightColor >> 16) & 0xFF);
         int gx = ((leftColor >> 8) & 0xFF) - ((rightColor >> 8) & 0xFF);
         int bx = (leftColor & 0xFF) - (rightColor & 0xFF);
@@ -108,8 +111,9 @@ public class SeamCarver {
         }
         for (int i = 1; i < width(); i++) {
             if (abs(seam[i] - seam[i - 1]) > 1) {
-                throw new IllegalArgumentException
-                        ("Invalid seam: adjacent pixels differ by more than one");
+                throw new IllegalArgumentException(
+                        "Invalid seam: adjacent pixels differ by more than one"
+                );
             }
         }
         Picture newPicture = new Picture(width(), height() - 1);
@@ -130,8 +134,9 @@ public class SeamCarver {
         }
         for (int i = 1; i < height(); i++) {
             if (abs(seam[i] - seam[i - 1]) > 1) {
-                throw new IllegalArgumentException
-                        ("Invalid seam: adjacent pixels differ by more than one");
+                throw new IllegalArgumentException(
+                        "Invalid seam: adjacent pixels differ by more than one"
+                );
             }
         }
         Picture newPicture = new Picture(width() - 1, height());
