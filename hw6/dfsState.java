@@ -1,13 +1,15 @@
 public class dfsState {
+    Trie.TrieNode node;
     String word;
     int x, y;
-    boolean[][] visited;
+    boolean isBacktrack;
 
-    dfsState(String word, int x, int y, boolean[][] visited) {
+    dfsState(Trie.TrieNode node, String word, int x, int y, boolean isBacktrack) {
+        this.node = node;
         this.word = word;
         this.x = x;
         this.y = y;
-        this.visited = visited; // Initialize with an empty visited array
+        this.isBacktrack = isBacktrack; // Initialize with an empty visited array
     }
 
     public int getX() {
@@ -19,7 +21,7 @@ public class dfsState {
     public String getWord() {
         return word;
     }
-    public boolean[][] getVisited() {
-        return visited;
+    public boolean isBacktrack() {
+        return isBacktrack;
     }
 }

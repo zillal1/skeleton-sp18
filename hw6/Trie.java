@@ -11,7 +11,7 @@ public class Trie {
             isEndOfWord = false;
         }
     }
-    public static TrieNode root;
+    public TrieNode root;
     public Trie(List<String> dict) {
         root = new TrieNode();
         for (String word : dict) {

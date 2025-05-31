@@ -1,11 +1,6 @@
 import java.io.File;
 import java.io.FileNotFoundException;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.PriorityQueue;
-import java.util.Set;
-import java.util.HashSet;
-import java.util.Scanner;
+import java.util.*;
 
 
 public class Boggle {
@@ -18,13 +13,7 @@ public class Boggle {
     private static Trie trie;
     private static List<String> board;
     private static boolean[][] visited;
-    private static Set<String> seen;
-    private static PriorityQueue<String> solution = new PriorityQueue<>((a, b) -> {
-        if (a.length() != b.length()) {
-            return a.length() - b.length(); // Sort by length increasing
-        }
-        return b.compareTo(a);
-    });
+    private static Stack<dfsState> stack;
     //private static List<String> dict = new ArrayList<>();
     private static List<String> read(String boardFilePath) {
         File file = new File(boardFilePath);
@@ -60,17 +49,24 @@ public class Boggle {
         }
         // Initialize a Trie with the dictionary
         trie = new Trie(dict);
-        seen = new HashSet<>();
+        Set<String> seen = new HashSet<>();
+        PriorityQueue<String> solution = new PriorityQueue<>((a, b) -> {
+            if (a.length() != b.length()) {
+                return a.length() - b.length(); // Sort by length increasing
+            }
+            return b.compareTo(a);
+        });
         visited = new boolean[board.size()][board.get(0).length()];
+        stack = new Stack<>();
         for (int i = 0; i < board.size(); i++) {
             for (int j = 0; j < board.get(i).length(); j++) {
                 // Start DFS from each cell in the board
-                if (!trie.search(Trie.root, board.get(i).charAt(j))) {
+                if (!trie.search(trie.root, board.get(i).charAt(j))) {
                     continue; // Skip if the first character is not in the Trie
                 }
-                visited[i][j] = true;
-                dfs(i, j, "" + board.get(i).charAt(j), k, trie.root.children.get(board.get(i).charAt(j)));
-                visited[i][j] = false; // Backtrack
+                stack.add(new dfsState(trie.root.children.get(board.get(i).charAt(j)),
+                        "" + board.get(i).charAt(j), i, j, false));
+                helper(k, solution, seen);
             }
         }
         // Convert the priority queue to a list and return it
@@ -80,35 +76,46 @@ public class Boggle {
         }
         return solutionList;
     }
-    private static void dfs(int currentRow, int currentCol, String currentString,
-                            int k, Trie.TrieNode node) {
-        visited[currentRow][currentCol] = true; // Mark the current cell as visited
-        if (trie.isComplete(node) && !seen.contains(currentString)) {
-            seen.add(currentString);
-            solution.add(currentString);
-            // If the solution size exceeds k, remove the smallest element
-            if (solution.size() > k) {
-                solution.poll();
+    private static void helper(int k, PriorityQueue<String> solution, Set<String> seen) {
+        while (!stack.isEmpty()) {
+            dfsState state = stack.pop();
+            Trie.TrieNode node = state.node;
+            String currentString = state.word;
+            int currentRow = state.x;
+            int currentCol = state.y;
+            boolean isBacktrack = state.isBacktrack;
+
+            if (isBacktrack) {
+                visited[currentRow][currentCol] = false; // Unmark the cell
+                continue; // Skip backtracking states
             }
-        }
-        for (int x = -1; x <= 1; x++) {
-            for (int y = -1; y <= 1; y++) {
-                if (x == 0 && y == 0) {
-                    continue; // Skip the current cell
+            visited[currentRow][currentCol] = true;
+            stack.add(new dfsState(node, currentString, currentRow, currentCol, true));
+            if (trie.isComplete(node) && currentString.length() >= 3 && !seen.contains(currentString)) {
+                solution.add(currentString);
+                seen.add(currentString);
+                if (solution.size() > k) {
+                    solution.poll(); // Remove the shortest word if we exceed k
                 }
-                int newRow = currentRow + x;
-                int newCol = currentCol + y;
-                if (newRow < 0 || newRow >= board.size() || newCol < 0
-                        || newCol >= board.get(newRow).length()) {
-                    continue; // Skip out of bounds
-                }
-                String nextWord = currentString + board.get(newRow).charAt(newCol);
-                if (trie.search(node, board.get(newRow).charAt(newCol))) {
-                    // Check if the next word is not already visited
-                    if (!visited[newRow][newCol]) {
-                        visited[newRow][newCol] = true; // Mark as visited
-                        dfs(newRow, newCol, nextWord, k, node.children.get(board.get(newRow).charAt(newCol)));
-                        visited[newRow][newCol] = false;
+            }
+
+            // Explore neighbors
+            for (int x = -1; x <= 1; x++) {
+                for (int y = -1; y <= 1; y++) {
+                    if (x == 0 && y == 0) {
+                        continue; // Skip the current cell
+                    }
+                    int newRow = currentRow + x;
+                    int newCol = currentCol + y;
+                    if (newRow < 0 || newRow >= board.size() || newCol < 0
+                            || newCol >= board.get(newRow).length()) {
+                        continue; // Skip out of bounds
+                    }
+                    char nextChar = board.get(newRow).charAt(newCol);
+                    if (trie.search(node, nextChar) && !visited[newRow][newCol]) {
+                        String nextWord = currentString + nextChar;
+                        stack.add(new dfsState(node.children.get(nextChar), nextWord,
+                                newRow, newCol, false));
                     }
                 }
             }
