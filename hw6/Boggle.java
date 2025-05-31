@@ -47,61 +47,61 @@ public class Boggle {
         Set<String> seen = new HashSet<>();
         PriorityQueue<String> solution = new PriorityQueue<>((a, b) -> {
             if (a.length() != b.length()) {
-                return b.length() - a.length(); // Sort by length descending
+                return a.length() - b.length(); // Sort by length increasing
             }
-            return a.compareTo(b); // Sort alphabetically ascending
+            return b.compareTo(a);
         });
+
         for (int i = 0; i < board.size(); i++) {
             for (int j = 0; j < board.get(i).length(); j++) {
                 // Start DFS from each cell in the board
                 boolean[][] visited = new boolean[board.size()][board.get(i).length()];
                 //StringBuilder currentWord = new StringBuilder();
-                Stack<dfsState> stack = new Stack<>();
                 if (!trie.search("" + board.get(i).charAt(j))) {
                     continue; // Skip if the first character is not in the Trie
                 }
                 visited[i][j] = true;
-                stack.add(new dfsState("" + board.get(i).charAt(j), i, j, visited));
-                while (!stack.isEmpty()) {
-                    dfsState state = stack.pop();
-                    String currentString = state.getWord();
-                    if (trie.isComplete(currentString)) {
-                        if (!seen.contains(currentString)) {
-                            seen.add(currentString);
-                            solution.add(currentString);
-                            if (solution.size() > k) {
-                                solution.poll(); // Keep only the top k words
-                            }
-                        }
-                    }
-                    int currentRow = state.getX();
-                    int currentCol = state.getY();
-                    // Explore neighbors
-                    for (int x = -1; x <= 1; x++) {
-                        for (int y = -1; y <= 1; y++) {
-                            if (x == 0 && y == 0) continue; // Skip the current cell
-                            int newRow = ((currentRow + x) + board.size()) % board.size();
-                            int newCol = ((currentCol + y) + board.get(0).length()) % board.get(newRow).length();
-                            String nextWord = currentString + board.get(newRow).charAt(newCol);
-                            if (trie.search(nextWord)) {
-                                // Check if the next word is not already visited
-                                if (!visited[newRow][newCol]) {
-                                    visited[newRow][newCol] = true; // Mark as visited
-                                    stack.add(new dfsState(nextWord, newRow, newCol, visited));
-                                    visited[newRow][newCol] = false; // Unmark for other paths
-                                }
-                            }
-                        }
-                    }
-                }
-                visited[i][j] = false;
+                dfs(i, j, "" + board.get(i).charAt(j), trie, board, seen, solution, visited, k);
+                visited[i][j] = false; // Backtrack
             }
         }
         // Convert the priority queue to a list and return it
         List<String> solutionList = new ArrayList<>();
         while (!solution.isEmpty()) {
-            solutionList.add(solution.poll());
+            solutionList.addFirst(solution.poll());
         }
         return solutionList;
+    }
+    private static void dfs(int currentRow, int currentCol, String currentString,
+                            Trie trie, List<String> board, Set<String> seen,
+                            PriorityQueue<String> solution, boolean[][] visited, int k) {
+        visited[currentRow][currentCol] = true; // Mark the current cell as visited
+        if (trie.isComplete(currentString) && !seen.contains(currentString)) {
+            seen.add(currentString);
+            solution.add(currentString);
+            // If the solution size exceeds k, remove the smallest element
+            if (solution.size() > k) {
+                solution.poll();
+            }
+        }
+        for (int x = -1; x <= 1; x++) {
+            for (int y = -1; y <= 1; y++) {
+                if (x == 0 && y == 0) continue; // Skip the current cell
+                int newRow = currentRow + x;
+                int newCol = currentCol + y;
+                if (newRow < 0 || newRow >= board.size() || newCol < 0 || newCol >= board.get(newRow).length()) {
+                    continue; // Skip out of bounds
+                }
+                String nextWord = currentString + board.get(newRow).charAt(newCol);
+                if (trie.search(nextWord)) {
+                    // Check if the next word is not already visited
+                    if (!visited[newRow][newCol]) {
+                        visited[newRow][newCol] = true; // Mark as visited
+                        dfs(newRow, newCol, nextWord, trie, board, seen, solution, visited, k);
+                        visited[newRow][newCol] = false;
+                    }
+                }
+            }
+        }
     }
 }
