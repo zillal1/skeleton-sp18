@@ -1,6 +1,12 @@
 import java.io.File;
 import java.io.FileNotFoundException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.PriorityQueue;
+import java.util.Set;
+import java.util.HashSet;
+import java.util.Scanner;
+
 
 public class Boggle {
     
@@ -22,17 +28,17 @@ public class Boggle {
     //private static List<String> dict = new ArrayList<>();
     private static List<String> read(String boardFilePath) {
         File file = new File(boardFilePath);
-        List<String> board = new ArrayList<>();
+        List<String> list = new ArrayList<>();
         try (Scanner scanner = new Scanner(file)) {
             while (scanner.hasNextLine()) {
                 String line = scanner.nextLine();
                 line = line.toLowerCase();
-                board.add(line);
+                list.add(line);
             }
         } catch (FileNotFoundException e) {
             System.err.println("Board file not found: " + boardFilePath);
         }
-        return board;
+        return list;
     }
 
     /**
@@ -59,11 +65,11 @@ public class Boggle {
         for (int i = 0; i < board.size(); i++) {
             for (int j = 0; j < board.get(i).length(); j++) {
                 // Start DFS from each cell in the board
-                if (!trie.search("" + board.get(i).charAt(j))) {
+                if (!trie.search(Trie.root, board.get(i).charAt(j))) {
                     continue; // Skip if the first character is not in the Trie
                 }
                 visited[i][j] = true;
-                dfs(i, j, "" + board.get(i).charAt(j), k);
+                dfs(i, j, "" + board.get(i).charAt(j), k, trie.root.children.get(board.get(i).charAt(j)));
                 visited[i][j] = false; // Backtrack
             }
         }
@@ -75,9 +81,9 @@ public class Boggle {
         return solutionList;
     }
     private static void dfs(int currentRow, int currentCol, String currentString,
-                            int k) {
+                            int k, Trie.TrieNode node) {
         visited[currentRow][currentCol] = true; // Mark the current cell as visited
-        if (trie.isComplete(currentString) && !seen.contains(currentString)) {
+        if (trie.isComplete(node) && !seen.contains(currentString)) {
             seen.add(currentString);
             solution.add(currentString);
             // If the solution size exceeds k, remove the smallest element
@@ -97,11 +103,11 @@ public class Boggle {
                     continue; // Skip out of bounds
                 }
                 String nextWord = currentString + board.get(newRow).charAt(newCol);
-                if (trie.search(nextWord)) {
+                if (trie.search(node, board.get(newRow).charAt(newCol))) {
                     // Check if the next word is not already visited
                     if (!visited[newRow][newCol]) {
                         visited[newRow][newCol] = true; // Mark as visited
-                        dfs(newRow, newCol, nextWord, k);
+                        dfs(newRow, newCol, nextWord, k, node.children.get(board.get(newRow).charAt(newCol)));
                         visited[newRow][newCol] = false;
                     }
                 }

@@ -1,16 +1,17 @@
+import java.util.HashMap;
 import java.util.List;
 
 public class Trie {
     public class TrieNode {
-        TrieNode[] children;
+        public final HashMap<Character, TrieNode> children;
         boolean isEndOfWord;
 
         public TrieNode() {
-            children = new TrieNode[266];
+            children = new HashMap<>();
             isEndOfWord = false;
         }
     }
-    public TrieNode root;
+    public static TrieNode root;
     public Trie(List<String> dict) {
         root = new TrieNode();
         for (String word : dict) {
@@ -20,37 +21,17 @@ public class Trie {
     private void insert(String word) {
         TrieNode current = root;
         for (char c : word.toCharArray()) {
-            int index = c;
-            if (current.children[index] == null) {
-                current.children[index] = new TrieNode();
+            if (current.children.get(c) == null) {
+                current.children.put(c, new TrieNode());
             }
-            current = current.children[index];
+            current = current.children.get(c);
         }
         current.isEndOfWord = true;
     }
-    public boolean isNext(TrieNode node, char c) {
-        return node.children[c] != null;
+    public boolean isComplete(TrieNode node) {
+        return node.isEndOfWord; // Check if it's a complete word
     }
-    public boolean isComplete(String word) {
-        TrieNode current = root;
-        for (char c : word.toCharArray()) {
-            int index = c;
-            if (current.children[index] == null) {
-                return false; // Character not found
-            }
-            current = current.children[index];
-        }
-        return current.isEndOfWord; // Check if it's a complete word
-    }
-    public boolean search(String word) {
-        TrieNode current = root;
-        for (char c : word.toCharArray()) {
-            int index = c;
-            if (current.children[index] == null) {
-                return false; // Character not found
-            }
-            current = current.children[index];
-        }
-        return true;
+    public boolean search(TrieNode node, char c) {
+        return (node.children.get(c) != null); // Check if the character exists in the children
     }
 }
