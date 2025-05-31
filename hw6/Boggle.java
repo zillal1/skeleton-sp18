@@ -3,7 +3,6 @@ import java.io.FileNotFoundException;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
-import java.util.PriorityQueue;
 import java.util.Scanner;
 import java.util.Set;
 
@@ -90,14 +89,16 @@ public class Boggle {
         // 探索8个方向（无环绕，根据你的代码逻辑）
         for (int dx = -1; dx <= 1; dx++) {
             for (int dy = -1; dy <= 1; dy++) {
-                if (dx == 0 && dy == 0) continue;
+                if (dx == 0 && dy == 0) {
+                    continue;
+                }
 
                 int newRow = row + dx;
                 int newCol = col + dy;
 
                 // 边界检查
-                if (newRow < 0 || newRow >= board.size() ||
-                        newCol < 0 || newCol >= board.get(newRow).length()) {
+                if (newRow < 0 || newRow >= board.size()
+                        || newCol < 0 || newCol >= board.get(newRow).length()) {
                     continue;
                 }
 
