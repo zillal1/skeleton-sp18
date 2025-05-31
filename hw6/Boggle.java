@@ -6,9 +6,19 @@ public class Boggle {
     
     // File path of dictionary file
     static String dictPath = "words.txt";
-    Boggle (String dictPath) {
+    Boggle(String dictPath) {
         Boggle.dictPath = dictPath;
     }
+    private static Trie trie;
+    private static List<String> board;
+    private static boolean[][] visited;
+    private static Set<String> seen;
+    private static PriorityQueue<String> solution = new PriorityQueue<>((a, b) -> {
+        if (a.length() != b.length()) {
+            return a.length() - b.length(); // Sort by length increasing
+        }
+        return b.compareTo(a);
+    });
     //private static List<String> dict = new ArrayList<>();
     private static List<String> read(String boardFilePath) {
         File file = new File(boardFilePath);
@@ -37,44 +47,35 @@ public class Boggle {
      */
     public static List<String> solve(int k, String boardFilePath) {
         // YOUR CODE HERE
-        List<String> board = Boggle.read(boardFilePath);
+        board = Boggle.read(boardFilePath);
         List<String> dict = Boggle.read(dictPath);
         if (board.isEmpty() || dict.isEmpty()) {
             return new ArrayList<>();
         }
         // Initialize a Trie with the dictionary
-        Trie trie = new Trie(dict);
-        Set<String> seen = new HashSet<>();
-        PriorityQueue<String> solution = new PriorityQueue<>((a, b) -> {
-            if (a.length() != b.length()) {
-                return a.length() - b.length(); // Sort by length increasing
-            }
-            return b.compareTo(a);
-        });
-
+        trie = new Trie(dict);
+        seen = new HashSet<>();
+        visited = new boolean[board.size()][board.get(0).length()];
         for (int i = 0; i < board.size(); i++) {
             for (int j = 0; j < board.get(i).length(); j++) {
                 // Start DFS from each cell in the board
-                boolean[][] visited = new boolean[board.size()][board.get(i).length()];
-                //StringBuilder currentWord = new StringBuilder();
                 if (!trie.search("" + board.get(i).charAt(j))) {
                     continue; // Skip if the first character is not in the Trie
                 }
                 visited[i][j] = true;
-                dfs(i, j, "" + board.get(i).charAt(j), trie, board, seen, solution, visited, k);
+                dfs(i, j, "" + board.get(i).charAt(j), k);
                 visited[i][j] = false; // Backtrack
             }
         }
         // Convert the priority queue to a list and return it
         List<String> solutionList = new ArrayList<>();
         while (!solution.isEmpty()) {
-            solutionList.addFirst(solution.poll());
+            solutionList.add(0, solution.poll());
         }
         return solutionList;
     }
     private static void dfs(int currentRow, int currentCol, String currentString,
-                            Trie trie, List<String> board, Set<String> seen,
-                            PriorityQueue<String> solution, boolean[][] visited, int k) {
+                            int k) {
         visited[currentRow][currentCol] = true; // Mark the current cell as visited
         if (trie.isComplete(currentString) && !seen.contains(currentString)) {
             seen.add(currentString);
@@ -86,10 +87,13 @@ public class Boggle {
         }
         for (int x = -1; x <= 1; x++) {
             for (int y = -1; y <= 1; y++) {
-                if (x == 0 && y == 0) continue; // Skip the current cell
+                if (x == 0 && y == 0) {
+                    continue; // Skip the current cell
+                }
                 int newRow = currentRow + x;
                 int newCol = currentCol + y;
-                if (newRow < 0 || newRow >= board.size() || newCol < 0 || newCol >= board.get(newRow).length()) {
+                if (newRow < 0 || newRow >= board.size() || newCol < 0
+                        || newCol >= board.get(newRow).length()) {
                     continue; // Skip out of bounds
                 }
                 String nextWord = currentString + board.get(newRow).charAt(newCol);
@@ -97,7 +101,7 @@ public class Boggle {
                     // Check if the next word is not already visited
                     if (!visited[newRow][newCol]) {
                         visited[newRow][newCol] = true; // Mark as visited
-                        dfs(newRow, newCol, nextWord, trie, board, seen, solution, visited, k);
+                        dfs(newRow, newCol, nextWord, k);
                         visited[newRow][newCol] = false;
                     }
                 }
