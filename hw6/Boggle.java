@@ -1,20 +1,20 @@
 import java.io.File;
 import java.io.FileNotFoundException;
-import java.util.*;
-
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.PriorityQueue;
+import java.util.Scanner;
+import java.util.Set;
 
 public class Boggle {
-    
-    // File path of dictionary file
+
     static String dictPath = "words.txt";
+
     Boggle(String dictPath) {
         Boggle.dictPath = dictPath;
     }
-    private static Trie trie;
-    private static List<String> board;
-    private static boolean[][] visited;
-    private static Stack<dfsState> stack;
-    //private static List<String> dict = new ArrayList<>();
+
     private static List<String> read(String boardFilePath) {
         File file = new File(boardFilePath);
         List<String> list = new ArrayList<>();
@@ -30,94 +30,99 @@ public class Boggle {
         return list;
     }
 
-    /**
-     * Solves a Boggle puzzle.
-     * 
-     * @param k The maximum number of words to return.
-     * @param boardFilePath The file path to Boggle board file.
-     * @return a list of words found in given Boggle board.
-     *         The Strings are sorted in descending order of length.
-     *         If multiple words have the same length,
-     *         have them in ascending alphabetical order.
-     */
     public static List<String> solve(int k, String boardFilePath) {
-        // YOUR CODE HERE
-        board = Boggle.read(boardFilePath);
-        List<String> dict = Boggle.read(dictPath);
+        List<String> board = read(boardFilePath);
+        List<String> dict = read(dictPath);
         if (board.isEmpty() || dict.isEmpty()) {
             return new ArrayList<>();
         }
-        // Initialize a Trie with the dictionary
-        trie = new Trie(dict);
-        Set<String> seen = new HashSet<>();
-        PriorityQueue<String> solution = new PriorityQueue<>((a, b) -> {
-            if (a.length() != b.length()) {
-                return a.length() - b.length(); // Sort by length increasing
-            }
-            return b.compareTo(a);
-        });
-        visited = new boolean[board.size()][board.get(0).length()];
-        stack = new Stack<>();
+
+        Trie trie = new Trie(dict);
+        Set<String> foundWords = new HashSet<>();
+
+        // 为每行分配正确长度的visited数组
+        boolean[][] visited = new boolean[board.size()][];
+        for (int i = 0; i < board.size(); i++) {
+            visited[i] = new boolean[board.get(i).length()];
+        }
+
+        // 使用StringBuilder避免字符串拼接开销
+        StringBuilder wordBuilder = new StringBuilder();
+
+        // 对每个起点进行独立的DFS
         for (int i = 0; i < board.size(); i++) {
             for (int j = 0; j < board.get(i).length(); j++) {
-                // Start DFS from each cell in the board
-                if (!trie.search(trie.root, board.get(i).charAt(j))) {
-                    continue; // Skip if the first character is not in the Trie
+                char firstChar = board.get(i).charAt(j);
+                if (trie.search(trie.root, firstChar)) {
+                    wordBuilder.append(firstChar);
+                    visited[i][j] = true;
+
+                    dfsOptimized(board, i, j, trie.root.children.get(firstChar),
+                            wordBuilder, visited, foundWords, trie);
+
+                    visited[i][j] = false;
+                    wordBuilder.deleteCharAt(wordBuilder.length() - 1);
                 }
-                stack.add(new dfsState(trie.root.children.get(board.get(i).charAt(j)),
-                        "" + board.get(i).charAt(j), i, j, false));
-                helper(k, solution, seen);
             }
         }
-        // Convert the priority queue to a list and return it
-        List<String> solutionList = new ArrayList<>();
-        while (!solution.isEmpty()) {
-            solutionList.add(0, solution.poll());
-        }
-        return solutionList;
+
+        // 批量处理结果，避免频繁的堆操作
+        List<String> sortedWords = new ArrayList<>(foundWords);
+        sortedWords.sort((a, b) -> {
+            if (a.length() != b.length()) {
+                return b.length() - a.length(); // 长度降序
+            }
+            return a.compareTo(b); // 字典序升序
+        });
+
+        return sortedWords.subList(0, Math.min(k, sortedWords.size()));
     }
-    private static void helper(int k, PriorityQueue<String> solution, Set<String> seen) {
-        while (!stack.isEmpty()) {
-            dfsState state = stack.pop();
-            Trie.TrieNode node = state.node;
-            String currentString = state.word;
-            int currentRow = state.x;
-            int currentCol = state.y;
-            boolean isBacktrack = state.isBacktrack;
 
-            if (isBacktrack) {
-                visited[currentRow][currentCol] = false; // Unmark the cell
-                continue; // Skip backtracking states
-            }
-            visited[currentRow][currentCol] = true;
-            stack.add(new dfsState(node, currentString, currentRow, currentCol, true));
-            if (trie.isComplete(node) && currentString.length() >= 3 && !seen.contains(currentString)) {
-                solution.add(currentString);
-                seen.add(currentString);
-                if (solution.size() > k) {
-                    solution.poll(); // Remove the shortest word if we exceed k
-                }
-            }
+    private static void dfsOptimized(List<String> board, int row, int col,
+                                     Trie.TrieNode currentNode, StringBuilder wordBuilder,
+                                     boolean[][] visited, Set<String> foundWords, Trie trie) {
 
-            // Explore neighbors
-            for (int x = -1; x <= 1; x++) {
-                for (int y = -1; y <= 1; y++) {
-                    if (x == 0 && y == 0) {
-                        continue; // Skip the current cell
-                    }
-                    int newRow = currentRow + x;
-                    int newCol = currentCol + y;
-                    if (newRow < 0 || newRow >= board.size() || newCol < 0
-                            || newCol >= board.get(newRow).length()) {
-                        continue; // Skip out of bounds
-                    }
-                    char nextChar = board.get(newRow).charAt(newCol);
-                    if (trie.search(node, nextChar) && !visited[newRow][newCol]) {
-                        String nextWord = currentString + nextChar;
-                        stack.add(new dfsState(node.children.get(nextChar), nextWord,
-                                newRow, newCol, false));
-                    }
+        // 检查当前单词是否完整且长度>=3
+        if (trie.isComplete(currentNode) && wordBuilder.length() >= 3) {
+            foundWords.add(wordBuilder.toString());
+        }
+
+        // 探索8个方向（无环绕，根据你的代码逻辑）
+        for (int dx = -1; dx <= 1; dx++) {
+            for (int dy = -1; dy <= 1; dy++) {
+                if (dx == 0 && dy == 0) continue;
+
+                int newRow = row + dx;
+                int newCol = col + dy;
+
+                // 边界检查
+                if (newRow < 0 || newRow >= board.size() ||
+                        newCol < 0 || newCol >= board.get(newRow).length()) {
+                    continue;
                 }
+
+                // 检查是否已访问
+                if (visited[newRow][newCol]) {
+                    continue;
+                }
+
+                char nextChar = board.get(newRow).charAt(newCol);
+
+                // 检查Trie中是否有这个字符的路径
+                if (!trie.search(currentNode, nextChar)) {
+                    continue;
+                }
+
+                // 递归探索
+                wordBuilder.append(nextChar);
+                visited[newRow][newCol] = true;
+
+                dfsOptimized(board, newRow, newCol, currentNode.children.get(nextChar),
+                        wordBuilder, visited, foundWords, trie);
+
+                // 回溯
+                visited[newRow][newCol] = false;
+                wordBuilder.deleteCharAt(wordBuilder.length() - 1);
             }
         }
     }
