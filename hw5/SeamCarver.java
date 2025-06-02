@@ -45,10 +45,10 @@ public class SeamCarver {
         if (width() == 1 && height() == 1) {
             return 0.0; // Special case for a single pixel
         }
-        int leftColor = this.picture().get(x == 0 ? width() - 1 : x - 1, y).getRGB();
-        int rightColor = this.picture().get(x == width() - 1 ? 0 : x + 1, y).getRGB();
-        int topColor = this.picture().get(x, y == 0 ? height() - 1 : y - 1).getRGB();
-        int bottomColor = this.picture().get(x, y == height() - 1 ? 0 : y + 1).getRGB();
+        int leftColor = this.picture.get(x == 0 ? width() - 1 : x - 1, y).getRGB();
+        int rightColor = this.picture.get(x == width() - 1 ? 0 : x + 1, y).getRGB();
+        int topColor = this.picture.get(x, y == 0 ? height() - 1 : y - 1).getRGB();
+        int bottomColor = this.picture.get(x, y == height() - 1 ? 0 : y + 1).getRGB();
         int rx = ((leftColor >> 16) & 0xFF) - ((rightColor >> 16) & 0xFF);
         int gx = ((leftColor >> 8) & 0xFF) - ((rightColor >> 8) & 0xFF);
         int bx = (leftColor & 0xFF) - (rightColor & 0xFF);
