@@ -5,7 +5,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class BinaryTrie implements Serializable {
-    private static class Node implements Serializable , Comparable<Node> {
+    private static class Node implements Serializable, Comparable<Node> {
         private char value;
         private int frequency;
         private Node left;
@@ -74,7 +74,8 @@ public class BinaryTrie implements Serializable {
         buildLookupTable(root, new BitSequence(), lookupTable);
         return lookupTable;
     }
-    private void buildLookupTable(Node node, BitSequence currentSequence, Map<Character, BitSequence> lookupTable) {
+    private void buildLookupTable(Node node, BitSequence currentSequence,
+                                  Map<Character, BitSequence> lookupTable) {
         if (node == null) {
             return;
         }
