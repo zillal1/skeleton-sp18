@@ -36,6 +36,9 @@ public class BitSequence implements Serializable {
         for (int i = 0; i < b.length(); i += 1) {
             append(b.bitAt(i));
         }
+        /*this.numBits = b.numBits;
+        this.firstBitNum = b.firstBitNum;
+        this.lastBitNum = b.lastBitNum;*/
     }
 
     /** Creates a bit sequence from a series of 1s and 0s. */
